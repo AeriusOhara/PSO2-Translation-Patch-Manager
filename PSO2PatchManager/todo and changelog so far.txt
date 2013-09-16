@@ -1,0 +1,16 @@
+﻿1.5 Update
+[x] Moved all data to AppData folder
+[x] Added 2 .exe's StarBoot.exe and StarUpdater.exe which keep the patcher up-to-date
+[x] ^ Basically StarUpdater downloads updates to itself and the PSO2 Patch Manager and installs them (the Updater itelf is updated by StarBoot.exe)
+[x] ^ The updating is completely optional (but of course, highly recommended) and the user will be prompted with options
+[x] Revamped the Settings window to include certain eventual updater options
+[x] Made sure any previous version owners will be converted to the new working folder (AppData) if the previous default working folder is detected (Documents)
+[x] Make it save/pull and use the Update Skip Verification value
+[x] Make a way to switch between Dev and Stable channel
+[x] into StarBoot with a parameter that will download the latest .exe from that build for both the updater and the pso2 patch manager
+[x] When the user switches from Dev to Stable channel, show a confirmation window that asks them if they really want to switch to that version or not. If yes, reboot
+
+Todo:
+[ ] Put a check in place that makes you require running as Admin
+[ ] Before releasing, run on a clean VM on x86 and x64
+[ ] Make a ping-to-home function so you can track how many people use it
