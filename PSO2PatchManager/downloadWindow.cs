@@ -38,9 +38,9 @@ namespace PSO2PatchManager
         private void downloadWindow_Load(object sender, EventArgs e)
         {
             // Set Form location
-            this.Location = new Point((MyGlobals.formX + 10), (MyGlobals.formY + 30));
+            this.Location = new Point((Globals.formX + 10), (Globals.formY + 30));
 
-            if (MyGlobals.downloadLargePatch)
+            if(Globals.downloadLargePatch)
             {
                 largePatchStatus.ForeColor = ColorTranslator.FromHtml("#FF3333");
                 largePatchStatus.Text = "OUTDATED";
@@ -52,7 +52,7 @@ namespace PSO2PatchManager
                 largePatchStatus.Text = "UP TO DATE";
             }
 
-            if (MyGlobals.downloadSmallPatch)
+            if(Globals.downloadSmallPatch)
             {
                 smallPatchStatus.ForeColor = ColorTranslator.FromHtml("#FF3333");
                 smallPatchStatus.Text = "OUTDATED";
@@ -65,10 +65,10 @@ namespace PSO2PatchManager
             }
 
             // If we have to download the large patch
-            if (MyGlobals.downloadLargePatch)
+            if(Globals.downloadLargePatch)
             {
                 // Delete old rar
-                System.IO.DirectoryInfo folderInformation = new DirectoryInfo(MyGlobals.workDirectory + "data\\patch\\large");
+                System.IO.DirectoryInfo folderInformation = new DirectoryInfo(Globals.workDirectory + "data\\patch\\large");
                 foreach (FileInfo file in folderInformation.GetFiles())
                 {
                     // If any files were found, delete them all
@@ -76,31 +76,31 @@ namespace PSO2PatchManager
                 }
 
                 // Delete old translated files
-                folderInformation = new DirectoryInfo(MyGlobals.workDirectory + "data\\patch\\large\\files");
-                foreach (FileInfo file in folderInformation.GetFiles())
+                folderInformation = new DirectoryInfo(Globals.workDirectory + "data\\patch\\large\\files");
+                foreach(FileInfo file in folderInformation.GetFiles())
                 {
                     // If any files were found, delete them all
                     file.Delete();
                 }
 
                 // The temporary download file path
-                temporaryDownloadingFilePath = MyGlobals.workDirectory + "data/patch/large/" + MyGlobals.latestLargePatchFileName;
+                temporaryDownloadingFilePath = Globals.workDirectory + "data/patch/large/" + Globals.latestLargePatchFileName;
 
                 // Add the download to the queue
                 downloadQueue.Add(new DownloadQueue
                 {
-                    url = "http://hiigara.arghargh200.net/pso2/" + MyGlobals.latestLargePatchFileName,
+                    url = "http://hiigara.arghargh200.net/pso2/" + Globals.latestLargePatchFileName,
                     downloadToPath = temporaryDownloadingFilePath,
-                    fileName = MyGlobals.latestLargePatchFileName,
+                    fileName = Globals.latestLargePatchFileName,
                     fileType = "Large Patch"
                 });
             }
 
             // If we have to download the small patch
-            if (MyGlobals.downloadSmallPatch)
+            if(Globals.downloadSmallPatch)
             {
                 // Delete old rar
-                System.IO.DirectoryInfo folderInformation = new DirectoryInfo(MyGlobals.workDirectory + "data\\patch\\small");
+                System.IO.DirectoryInfo folderInformation = new DirectoryInfo(Globals.workDirectory + "data\\patch\\small");
                 foreach (FileInfo file in folderInformation.GetFiles())
                 {
                     // If any files were found, delete them all
@@ -108,7 +108,7 @@ namespace PSO2PatchManager
                 }
 
                 // Delete old translated files
-                folderInformation = new DirectoryInfo(MyGlobals.workDirectory + "data\\patch\\small\\files");
+                folderInformation = new DirectoryInfo(Globals.workDirectory + "data\\patch\\small\\files");
                 foreach (FileInfo file in folderInformation.GetFiles())
                 {
                     // If any files were found, delete them all
@@ -116,30 +116,29 @@ namespace PSO2PatchManager
                 }
 
                 // The temporary download file path
-                temporaryDownloadingFilePath = MyGlobals.workDirectory + "data/patch/small/" + MyGlobals.latestSmallPatchFileName;
+                temporaryDownloadingFilePath = Globals.workDirectory + "data/patch/small/" + Globals.latestSmallPatchFileName;
 
                 // Add the download to the queue
                 downloadQueue.Add(new DownloadQueue
                 {
-                    url = "http://hiigara.arghargh200.net/pso2/" + MyGlobals.latestSmallPatchFileName,
+                    url = "http://hiigara.arghargh200.net/pso2/" + Globals.latestSmallPatchFileName,
                     downloadToPath = temporaryDownloadingFilePath,
-                    fileName = MyGlobals.latestSmallPatchFileName,
+                    fileName = Globals.latestSmallPatchFileName,
                     fileType = "Small Patch"
                 });
             }
 
-            if (downloadQueue.Count() > 0)
+            if(downloadQueue.Count() > 0)
             {
                 downloadFile();
             }
         }
 
-        //public void downloadFile(string urlAddress, string location)
         public void downloadFile()
         {
-            if (downloadQueue.Count() > 0)
+            if(downloadQueue.Count() > 0)
             {
-                using (webClient = new WebClient())
+                using(webClient = new WebClient())
                 {
                     webClient.DownloadFileCompleted += new AsyncCompletedEventHandler(Completed);
                     webClient.DownloadProgressChanged += new DownloadProgressChangedEventHandler(ProgressChanged);
@@ -148,7 +147,7 @@ namespace PSO2PatchManager
                     {
                         // Increment the at file download count and update the labels
                         downloadingFileOf++;
-                        fileStatusLabel.Text = "Files: " + downloadingFileOf + "/" + MyGlobals.filesToDownload.ToString();
+                        fileStatusLabel.Text = "Files: " + downloadingFileOf + "/" + Globals.filesToDownload.ToString();
                         downloadingTypeLabel.Text = downloadQueue[0].fileType;
                         downloadingFileNameLabel.Text = downloadQueue[0].fileName;
 
@@ -156,13 +155,12 @@ namespace PSO2PatchManager
                         Uri URL;
 
                         // Make sure the url starts with "http://"
-                        if (!downloadQueue[0].url.StartsWith("http://", StringComparison.OrdinalIgnoreCase))
+                        if(!downloadQueue[0].url.StartsWith("http://", StringComparison.OrdinalIgnoreCase))
                         {
                             downloadQueue[0].url = "http://" + downloadQueue[0].url;
                         }
 
-                        //MessageBox.Show("Value: " + urlAddress);
-                        if (!Uri.TryCreate(downloadQueue[0].url, UriKind.Absolute, out URL))
+                        if(!Uri.TryCreate(downloadQueue[0].url, UriKind.Absolute, out URL))
                         {
                             MessageBox.Show("Bad URL! -> " + downloadQueue[0].url);
                         }
@@ -175,7 +173,7 @@ namespace PSO2PatchManager
 
                         downloadQueue.RemoveAt(0);
                     }
-                    catch (Exception ex)
+                    catch(Exception ex)
                     {
                         MessageBox.Show(ex.Message);
                     }
@@ -183,7 +181,7 @@ namespace PSO2PatchManager
             }
             else
             {
-                //MessageBox.Show("You are now up to date");
+                // Download(s) is/are completed
                 this.Close();
             }
         }
@@ -193,13 +191,15 @@ namespace PSO2PatchManager
             try
             {
                 // Update the progressbar percentage only when the value is not the same (to avoid updating the control constantly)
-                if (progressBar.Value != e.ProgressPercentage)
+                if(progressBar.Value != e.ProgressPercentage)
+                {
                     progressBar.Value = e.ProgressPercentage;
+                }
 
                 // Update the label with how much data have been downloaded so far and the total size of the file we are currently downloading
                 fileSizeLabel.Text = (Convert.ToDouble(e.BytesReceived) / 1024 / 1024).ToString("0.00") + " Mb" + " of " + (Convert.ToDouble(e.TotalBytesToReceive) / 1024 / 1024).ToString("0.00") + " Mb";
             }
-            catch (Exception ex)
+            catch(Exception ex)
             {
                 MessageBox.Show(ex.Message);
             }
@@ -208,7 +208,7 @@ namespace PSO2PatchManager
         private void Completed(object sender, AsyncCompletedEventArgs e)
         {
             stopWatch.Reset();
-            if (e.Cancelled == true)
+            if(e.Cancelled == true)
             {
                 // Delete the file we were downloading
                 File.Delete(temporaryDownloadingFilePath);
@@ -216,7 +216,8 @@ namespace PSO2PatchManager
             }
             else
             {
-                //MessageBox.Show("The Download has Completed!");
+                // Download completed
+                // Download the next file, if necessary
                 downloadFile();
             }
         }
@@ -232,21 +233,5 @@ namespace PSO2PatchManager
             File.Delete(temporaryDownloadingFilePath);
             MessageBox.Show("You have cancelled the Download.");
         }
-    }
-}
-
-public class DownloadQueue
-{
-    public string url { set; get; }
-    public string downloadToPath { set; get; }
-    public string fileName { set; get; }
-    public string fileType { set; get; }
-
-    public void clear()
-    {
-        this.url = "";
-        this.downloadToPath = "";
-        this.fileName = "";
-        this.fileType = "";
     }
 }

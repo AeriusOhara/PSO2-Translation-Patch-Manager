@@ -16,6 +16,9 @@ namespace PSO2PatchManager
         [STAThread]
         static void Main(string[] args)
         {
+            // Check the received parameters, if the correct one was
+            // received, run the app, if none were received, go
+            // back to StarBoot.exe
             if(args.Count() != 0)
             {
                 foreach (var arg in args)
@@ -29,10 +32,10 @@ namespace PSO2PatchManager
             }
             else
             {
-                //MessageBox.Show("Please do not run this application manually.\n\nRun StarBoot.exe instead.");
-                //Process.GetCurrentProcess().Kill();
-
-                // Do the below so they can just shortcut this .exe, less confusing
+                // Shutdown this app and do the loop of:
+                // StarBoot->StarUpdater->PSO2 Translation Patch Manager
+                // That way the user can shortcut this main .exe and not
+                // have to shortcut StarBoot.exe
                 Process starUpdater = new Process();
                 starUpdater.StartInfo.FileName = "StarBoot.exe";
                 starUpdater.Start();

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -14,15 +13,22 @@ using HtmlAgilityPack;
 using System.Data.SQLite;
 using System.Text.RegularExpressions;
 using System.Diagnostics;
-using System.Security.Cryptography;
 
 namespace PSO2PatchManager
 {
     public partial class mainForm : Form
     {
-        string[] transFiles;
-        string[] origFiles;
         string currentDir;
+
+        public mainForm()
+        {
+            InitializeComponent();
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            
+        }
 
         // OnLoaded should be executed when the app is loaded and
         // goes into Idle
@@ -80,11 +86,12 @@ namespace PSO2PatchManager
                 removeReadmeIfExists();
 
                 // Store the form's location
-                MyGlobals.formX = this.Location.X;
-                MyGlobals.formY = this.Location.Y;
+                Globals.formX = this.Location.X;
+                Globals.formY = this.Location.Y;
 
                 // Initialize SQLite
-                initSqlite();
+                sqliteHandler sqlh = new sqliteHandler();
+                sqlh.initSqlite();
 
                 // Check if this is our first run or not
                 checkFirstRun();
@@ -93,128 +100,13 @@ namespace PSO2PatchManager
                 checkVersion();
 
                 // Make sure the buttons are disabled by default until we've done our checks
-                largePatchInstallButton.Enabled = false;
-                largePatchRevertButton.Enabled = false;
-                smallPatchInstallButton.Enabled = false;
-                smallPatchRevertButton.Enabled = false;
-                storyPatchInstallButton.Enabled = false;
-                storyPatchRevertButton.Enabled = false;
+                disableButtons();
 
                 // Get our current working directory
                 currentDir = Environment.CurrentDirectory + "\\";
 
-                // Check if we're in the PSO2 directory or not
-                if(Directory.Exists(currentDir + "data\\win32"))
-                {
-                    Log("[o] OK! translated_files and original_files folders exist.\r\n");
-                }
-                else
-                {
-                    Log("[x] The application is not running from the PSO2 Directory.");
-                    Log("\r\n\r\n");
-                    Log("Please make sure the application is running in the same directory that pso2.exe is in.");
-                    Log("\r\n\r\n");
-                    Log("This is often the path:\r\n");
-                    Log("C:\\Program Files (x86)\\SEGA\\PHANTASYSTARONLINE2\\pso2_bin");
-                }
-
-                // Check if the folders exist or not, if not, create them
-                //string[] curDirectories = Directory.GetDirectories("/");
-                /*bool translatedFilesExists  = Directory.Exists("translated_files");
-                bool originalFilesExists    = Directory.Exists("original_files");*/
-                bool largePatchFolderExists = Directory.Exists(MyGlobals.workDirectory + "data\\patch\\large");
-                bool smallPatchFolderExists = Directory.Exists(MyGlobals.workDirectory + "data\\patch\\small");
-                bool largeFilesFolderExists = Directory.Exists(MyGlobals.workDirectory + "data\\patch\\large\\files");
-                bool smallFilesFolderExists = Directory.Exists(MyGlobals.workDirectory + "data\\patch\\small\\files");
-                bool storyFilesFolderExists = Directory.Exists(MyGlobals.workDirectory + "data\\patch\\story\\files");
-                bool largeFilesOrigFolderExists = Directory.Exists(MyGlobals.workDirectory + "data\\patch\\large\\files\\original");
-                bool smallFilesOrigFolderExists = Directory.Exists(MyGlobals.workDirectory + "data\\patch\\small\\files\\original");
-                bool storyFilesOrigFolderExists = Directory.Exists(MyGlobals.workDirectory + "data\\patch\\story\\files\\original");
-                bool tmpFolderExists = Directory.Exists(MyGlobals.workDirectory + "data\\patch\\temp");
-
-                // If the Large patch directory doesn't exist, create it
-                if (!largePatchFolderExists)
-                {
-                    if (createDirectory(MyGlobals.workDirectory + "data\\patch\\large"))
-                    {
-                        largeFilesFolderExists = true;
-                    }
-                }
-
-                // If the Small patch directory doesn't exist, create it
-                if (!smallPatchFolderExists)
-                {
-                    if (createDirectory(MyGlobals.workDirectory + "data\\patch\\small"))
-                    {
-                        smallFilesFolderExists = true;
-                    }
-                }
-
-                // If the Large patch files directory doesn't exist, create it
-                if (!largeFilesFolderExists)
-                {
-                    if (createDirectory(MyGlobals.workDirectory + "data\\patch\\large\\files"))
-                    {
-                        largeFilesFolderExists = true;
-                    }
-                }
-
-                // If the Small patch files directory doesn't exist, create it
-                if (!smallFilesFolderExists)
-                {
-                    if (createDirectory(MyGlobals.workDirectory + "data\\patch\\small\\files"))
-                    {
-                        smallFilesFolderExists = true;
-                    }
-                }
-
-                // If the story patch files directory doesn't exist, create it
-                if (!storyFilesFolderExists)
-                {
-                    if (createDirectory(MyGlobals.workDirectory + "data\\patch\\story\\files"))
-                    {
-                        storyFilesFolderExists = true;
-                    }
-                }
-
-                // If the original files directory for the large patch doesn't exist, create it
-                if (!largeFilesOrigFolderExists)
-                {
-                    if (createDirectory(MyGlobals.workDirectory + "data\\patch\\large\\files\\original"))
-                    {
-                        largeFilesOrigFolderExists = true;
-                    }
-                }
-
-                // If the original files directory for the small patch doesn't exist, create it
-                if (!smallFilesOrigFolderExists)
-                {
-                    if (createDirectory(MyGlobals.workDirectory + "data\\patch\\small\\files\\original"))
-                    {
-                        smallFilesOrigFolderExists = true;
-                    }
-                }
-
-                // If the original files directory for the story patch doesn't exist, create it
-                if (!storyFilesOrigFolderExists)
-                {
-                    if (createDirectory(MyGlobals.workDirectory + "data\\patch\\story\\files\\original"))
-                    {
-                        storyFilesOrigFolderExists = true;
-                    }
-                }
-
-                // If the original files directory for the story patch doesn't exist, create it
-                if (!tmpFolderExists)
-                {
-                    if (createDirectory(MyGlobals.workDirectory + "data\\patch\\temp"))
-                    {
-                        tmpFolderExists = true;
-                    }
-                }
-
-                // Clear out the temp folder, if any folders were there
-                System.IO.DirectoryInfo folderInformation = new DirectoryInfo(MyGlobals.workDirectory + "data\\patch\\temp");
+                // Clear out the temp folder, if any files were there
+                System.IO.DirectoryInfo folderInformation = new DirectoryInfo(Globals.workDirectory + "data\\patch\\temp");
                 foreach (FileInfo file in folderInformation.GetFiles())
                 {
                     // If any files were found, delete them all
@@ -231,29 +123,37 @@ namespace PSO2PatchManager
                 // Check for updates (and all that jazz)
                 checkForUpdates();
 
-                // Show form before updating
-                this.Show();
-
                 // Check if we should initiate the downloader or not
                 checkDownloader();
             }
 
-            MyGlobals.pingSiteWithData("http://aerius.no-ip.biz/pso2tpm/stats.php?a=p&u=" + MyGlobals.GetMd5Hash(Environment.ExpandEnvironmentVariables("%userprofile%")));
-        }
-
-        public mainForm()
-        {
-            InitializeComponent();
+            // Ping the server
+            /*
+             * NOTE: This is used only for statistics, only the MD5'd hash is sent to the
+             * server to keep people apart. This way I can track how many people are
+             * approximately using the application
+             * Will include an opt-out in the future (which will also mean the entry
+             * will be deleted off the server)
+             * Only stats recorded: md5'd hash as "user id", and the times the application
+             * has booted and pinged the server, that's all
+             * 
+             * When implementing the opt-out, I will also clear out the entire database
+             * of any entries, otherwise the opt-out is kind of silly. For now this is
+             * just a test thing. I will likely rework it to use something entirely
+             * different
+             */
+            Globals.pingSiteWithData("http://aerius.no-ip.biz/pso2tpm/stats.php?a=p&u=" + Globals.GetMd5Hash(Environment.ExpandEnvironmentVariables("%userprofile%")));
         }
 
         public bool processIsRunning(string process)
         {
-            // Got this from stackoverflow, investigate later
+            // Get how many process of the given parameter
             return (System.Diagnostics.Process.GetProcessesByName(process).Length != 0);
         }
 
         public int processIsRunningNumber(string process)
         {
+            // Get how many processes are running of the given parameter
             return Process.GetProcessesByName(process).Length;
         }
 
@@ -270,7 +170,7 @@ namespace PSO2PatchManager
 
         public void checkOlderVersion()
         {
-            if(File.Exists(MyGlobals.oldWorkDirectory+"data\\data.s3db"))
+            if(File.Exists(Globals.oldWorkDirectory+"data\\data.s3db"))
             {
                 // Prompt the user of what's about to happen, so they know what's going on
                 string message = "Hi!\n";
@@ -282,154 +182,55 @@ namespace PSO2PatchManager
                 MessageBox.Show(message);
 
                 // Older version files detected. Move them to the new folder
-                Directory.Move(MyGlobals.oldWorkDirectory+"data", MyGlobals.workDirectory+"data");
+                Directory.Move(Globals.oldWorkDirectory+"data", Globals.workDirectory+"data");
             }
         }
 
         public void checkUsingVersion()
         {
+            // Grab the pso2tpm's current version
             string[] tmp = new string[]{"0"};
-            try{
-                tmp = File.ReadAllLines(MyGlobals.workDirectory+"using.dat");
+            try
+            {
+                // If the file exists
+                tmp = File.ReadAllLines(Globals.workDirectory+"using.dat");
             }
-            catch(FileNotFoundException ex){
+            catch(FileNotFoundException ex)
+            {
+                // File was not found, generate it and then attempt to read it again
+                // once more
                 string versionFileContents = "0";
-                System.IO.File.WriteAllText(@MyGlobals.workDirectory+"using.dat", versionFileContents);
+                System.IO.File.WriteAllText(@Globals.workDirectory+"using.dat", versionFileContents);
 
-                tmp = File.ReadAllLines(MyGlobals.workDirectory+"using.dat");
+                try
+                {
+                    // Attempt to read the file again
+                    tmp = File.ReadAllLines(Globals.workDirectory+"using.dat");
+                }
+                catch(FileNotFoundException ex2)
+                {
+                    // Couldn't read the file, which means we failed to create it
+                    MessageBox.Show("Could not generate the version.ver file. Please make sure this application is running with Administrator Privileges if this problem persists.");
+                    Application.Exit();
+                }
             }
-            Int32.TryParse(tmp[0], out MyGlobals.usingVersion);
+            Int32.TryParse(tmp[0], out Globals.usingVersion);
 
-            if(MyGlobals.usingVersion == 1)
+            // Show the "using developer build" image at the bottom
+            // Will change this to use a regular text label later,
+            // just wanted to see if this would have worked with an
+            // image or not
+            if(Globals.usingVersion == 1)
             {
                 devChannelNotification.Visible = true;
             }
         }
 
-        public void initSqlite()
-        {
-            // If the Large patch directory doesn't exist, create it
-            bool workDirectoryExists = Directory.Exists(MyGlobals.workDirectory);
-            if (!workDirectoryExists)
-            {
-                if (createDirectory(MyGlobals.workDirectory))
-                {
-                    workDirectoryExists = true;
-                }
-            }
-
-            // Check if our database exixts, if not, create it
-            MyGlobals.dblink = null;
-            try
-            {
-                MyGlobals.dblink = new SQLiteConnection("Data Source=" + MyGlobals.workDirectory + "data\\data.s3db;Version=3;FailIfMissing=True;");
-            }
-            catch (SQLiteException ex)
-            {
-                 //MessageBox.Show(ex.ToString());
-            }
-
-            try
-            {
-                //MessageBox.Show("Opening Database File");
-                MyGlobals.dblink.Open();
-
-                initTables();
-            }
-            catch (SQLiteException ex)
-            {
-                //MessageBox.Show(ex.ToString());
-                
-                // Create the folder 'data'
-                createDirectory(MyGlobals.workDirectory + "data");
-
-                //MessageBox.Show("Creating Database File");
-                SQLiteConnection.CreateFile(MyGlobals.workDirectory + "data\\data.s3db");
-
-                // Try to open the file once more, now we've created it
-                try
-                {
-                    // Try opening the file
-                    MyGlobals.dblink.Open();
-
-                    initTables();
-                }
-                catch (SQLiteException ex3)
-                {
-                    //MessageBox.Show(ex3.ToString());
-                    // Couldn't open the database file, which means it wasn't
-                    // created, no administrative priviledges perhaps? Throw
-                    // an error
-                    MessageBox.Show("Could not create the database file directory!\r\nTry running this application with Administrative Privileges.");
-                }
-            }
-        }
-
-        public void initTables()
-        {
-            // Create the tables
-            string query = null;
-
-            // The table that holds the Folders we'll monitor
-            query = "CREATE TABLE IF NOT EXISTS [FileList](";
-            query += "[FileName] TEXT NULL,";
-            query += "[Type] TEXT NULL,";
-            query += "[DateModified] DATE NULL";
-            query += ");";
-            MyGlobals.executeQuery(query);
-
-            // Clear the file list
-            query = "DELETE FROM `FileList`;";
-            MyGlobals.executeQuery(query);
-
-            // Settings table
-            query = "CREATE TABLE IF NOT EXISTS [Settings](";
-            query += "[Name] TEXT NULL,";
-            query += "[Value] TEXT NULL";
-            query += ");";
-            MyGlobals.executeQuery(query);
-
-            // Set up the values
-            if(!MyGlobals.settingExists("firstRun")){MyGlobals.addSetting("firstRun", "");}
-            if(!MyGlobals.settingExists("workDirectory")){MyGlobals.addSetting("workDirectory", "");}
-            if(!MyGlobals.settingExists("pso2Directory")){MyGlobals.addSetting("pso2Directory", "");}
-            if(!MyGlobals.settingExists("largePatchOnFile")){MyGlobals.addSetting("largePatchOnFile", "");}
-            if(!MyGlobals.settingExists("smallPatchOnFile")) { MyGlobals.addSetting("smallPatchOnFile", "");}
-            if(!MyGlobals.settingExists("transNotifySettings")) { MyGlobals.addSetting("transNotifySettings", "");}
-            if(!MyGlobals.settingExists("pso2NotifySettings")) { MyGlobals.addSetting("pso2NotifySettings", "");}
-        }
-
-        public bool createDirectory(string directory)
-        {
-            try
-            {
-                Directory.CreateDirectory(directory);
-                Log("Created the " + directory);
-                Log("\r\n");
-
-                return true;
-            }
-            catch (System.Exception excpt)
-            {
-                Log("Could not create the " + directory + ".");
-                Log("\r\n\r\n");
-                Log("Try running the application with Administrative Privileges.");
-                Log("\r\n");
-
-                Console.WriteLine(excpt.Message);
-
-                return false;
-            }
-        }
-
-        private void Form1_Load(object sender, EventArgs e)
-        {
-            
-        }
-
         private void checkFirstRun()
         {
-            if (MyGlobals.getSetting("firstRun") == "")
+            // Check if this is our first run or not, which will
+            // call up the modified settings window
+            if(Globals.getSetting("firstRun") == "")
             {
                 Form PMSettings = new PMSettings();
                 PMSettings.ShowDialog(this);
@@ -441,6 +242,7 @@ namespace PSO2PatchManager
             WebClient client = new WebClient();
             // User-agent needed to get access to version.ver on SEGA's servers
             client.Headers.Add("user-agent", "AQUA_HTTP");
+
             // Read the file
             String versionOnServer = "Unavailable";
             try
@@ -464,6 +266,7 @@ namespace PSO2PatchManager
             {
                 // File's not there, probably because of an HTTP error that stopped the download, so the version.ver is now
                 // called version_precede.ver, do nothing
+                // Alternatively the PSO2 client may not have been installed or ran first
             }
             
             // Update the labels
@@ -479,14 +282,14 @@ namespace PSO2PatchManager
 
                 clientVersionLabel.ForeColor = ColorTranslator.FromHtml("#FF3333");
                 clientVersionLabel.Text += " (!)";
-                MyGlobals.clientOutdated = true;
+                Globals.clientOutdated = true;
             }
         }
 
         private bool directoryHasFiles(string location)
         {
             string[] filesInDirectory = Directory.GetFiles(location);
-            if(transFiles.Length > 0)
+            if(filesInDirectory.Length > 0)
             {
                 return true;
             }
@@ -509,74 +312,82 @@ namespace PSO2PatchManager
 
         private void checkFolders()
         {
-            // Check the Large Patch
-            string[] largePatchDirectory = Directory.GetFiles(MyGlobals.workDirectory + "data\\patch\\large\\files\\");
-            string[] largePatchOrigDirectory = Directory.GetFiles(MyGlobals.workDirectory + "data\\patch\\large\\files\\original\\");
+            // Check if the folders exist or not, if not, create them
+            if(!Directory.Exists(Globals.workDirectory + "data\\patch\\large"))                     { Globals.createDirectory(Globals.workDirectory + "data\\patch\\large"); }
+            if(!Directory.Exists(Globals.workDirectory + "data\\patch\\small"))                     { Globals.createDirectory(Globals.workDirectory + "data\\patch\\small"); }
+            if(!Directory.Exists(Globals.workDirectory + "data\\patch\\large\\files"))              { Globals.createDirectory(Globals.workDirectory + "data\\patch\\large\\files"); }
+            if(!Directory.Exists(Globals.workDirectory + "data\\patch\\small\\files"))              { Globals.createDirectory(Globals.workDirectory + "data\\patch\\small\\files"); }
+            if(!Directory.Exists(Globals.workDirectory + "data\\patch\\story\\files"))              { Globals.createDirectory(Globals.workDirectory + "data\\patch\\story\\files"); }
+            if(!Directory.Exists(Globals.workDirectory + "data\\patch\\large\\files\\original"))    { Globals.createDirectory(Globals.workDirectory + "data\\patch\\large\\files\\original"); }
+            if(!Directory.Exists(Globals.workDirectory + "data\\patch\\small\\files\\original"))    { Globals.createDirectory(Globals.workDirectory + "data\\patch\\small\\files\\original"); }
+            if(!Directory.Exists(Globals.workDirectory + "data\\patch\\story\\files\\original"))    { Globals.createDirectory(Globals.workDirectory + "data\\patch\\story\\files\\original"); }
+            if(!Directory.Exists(Globals.workDirectory + "data\\patch\\temp"))                      { Globals.createDirectory(Globals.workDirectory + "data\\patch\\temp"); }
 
-            if (largePatchDirectory.Length > 0)
+            // Check the Large Patch
+            string[] largePatchDirectory = Directory.GetFiles(Globals.workDirectory + "data\\patch\\large\\files\\");
+            string[] largePatchOrigDirectory = Directory.GetFiles(Globals.workDirectory + "data\\patch\\large\\files\\original\\");
+
+            largePatchInstallButton.Enabled = false;
+            largePatchRevertButton.Enabled = false;
+
+            // If the large-translation patch has not been installed
+            if(largePatchDirectory.Length > 0)
             {
+                // Enable the Install button
                 largePatchInstallButton.Enabled = true;
             }
-            else
+
+            // If the large-translation patch has been installed
+            if(largePatchOrigDirectory.Length > 0)
             {
-                largePatchInstallButton.Enabled = false;
-            }
-            if (largePatchOrigDirectory.Length > 0)
-            {
+                // Enable the Revert button
                 largePatchRevertButton.Enabled = true;
-            }
-            else
-            {
-                largePatchRevertButton.Enabled = false;
             }
 
             // Check the Small Patch
-            string[] smallPatchDirectory = Directory.GetFiles(MyGlobals.workDirectory + "data\\patch\\small\\files\\");
-            string[] smallPatchOrigDirectory = Directory.GetFiles(MyGlobals.workDirectory + "data\\patch\\small\\files\\original\\");
+            string[] smallPatchDirectory = Directory.GetFiles(Globals.workDirectory + "data\\patch\\small\\files\\");
+            string[] smallPatchOrigDirectory = Directory.GetFiles(Globals.workDirectory + "data\\patch\\small\\files\\original\\");
 
+            smallPatchInstallButton.Enabled = false;
+            smallPatchRevertButton.Enabled = false;
+
+            // If the small-translation patch has not been installed
             if(smallPatchDirectory.Length > 0)
             {
+                // Enable the Install button
                 smallPatchInstallButton.Enabled = true;
             }
-            else
-            {
-                smallPatchInstallButton.Enabled = false;
-            }
+
+            // If the small-translation patch has been installed
             if(smallPatchOrigDirectory.Length > 0)
             {
+                // Enable the Revert button
                 smallPatchRevertButton.Enabled = true;
-            }
-            else
-            {
-                smallPatchRevertButton.Enabled = false;
             }
 
             // Check the Story Patch
-            string[] storyPatchDirectory = Directory.GetFiles(MyGlobals.workDirectory + "data\\patch\\story\\files\\");
-            string[] storyPatchOrigDirectory = Directory.GetFiles(MyGlobals.workDirectory + "data\\patch\\story\\files\\original\\");
+            string[] storyPatchDirectory = Directory.GetFiles(Globals.workDirectory + "data\\patch\\story\\files\\");
+            string[] storyPatchOrigDirectory = Directory.GetFiles(Globals.workDirectory + "data\\patch\\story\\files\\original\\");
 
-            if (storyPatchDirectory.Length > 0)
+            storyPatchInstallButton.Enabled = false;
+            storyPatchRevertButton.Enabled = false;
+            manualInstallStoryPatchButton.Enabled = true;
+
+            // If the story-translation patch has not been installed
+            if(storyPatchDirectory.Length > 0)
             {
+                // Enable the Install button
                 storyPatchInstallButton.Enabled = true;
             }
-            else
+
+            // If the story-translation patch has been installed
+            if(storyPatchOrigDirectory.Length > 0)
             {
-                storyPatchInstallButton.Enabled = false;
-            }
-            if (storyPatchOrigDirectory.Length > 0)
-            {
+                // Enable the Revert button
                 storyPatchRevertButton.Enabled = true;
 
                 // Disable the Manual Installation button
                 manualInstallStoryPatchButton.Enabled = false;
-            }
-            else
-            {
-                // Disable revert button
-                storyPatchRevertButton.Enabled = false;
-
-                // Enable the Manual Installation button
-                manualInstallStoryPatchButton.Enabled = true;
             }
 
             // Enable bottom buttons
@@ -586,9 +397,9 @@ namespace PSO2PatchManager
 
         private void checkForUpdates()
         {
-            if(MyGlobals.clientOutdated == true)
+            if(Globals.clientOutdated == true)
             {
-                int pso2NotifySetting = MyGlobals.getIntFromString(MyGlobals.getSetting("pso2NotifySettings"));
+                int pso2NotifySetting = Globals.getIntFromString(Globals.getSetting("pso2NotifySettings"));
                 bool doRevert = false;
                 bool patchesInstalled = false;
 
@@ -600,7 +411,7 @@ namespace PSO2PatchManager
                 if(pso2NotifySetting == 1 && patchesInstalled)
                 {
                     // If we chose to get a notification, and have translated files installed, ask
-                    DialogResult dialogResult = MessageBox.Show("A PSO2 Update was found as your client seems to be outdated. Would you like to revert the Translation Files?", "PSO2 Update Found", MessageBoxButtons.YesNo);
+                    DialogResult dialogResult = MessageBox.Show("Your PSO2 client seems to be outdated. An update was found for PSO2. Would you like to revert the Translation Files?\nThis is recommended, updating PSO2 while there are translation files installed can cause unexpected behaviours.", "PSO2 Update Found", MessageBoxButtons.YesNo);
                     if(dialogResult == DialogResult.Yes)
                     {
                         doRevert = true;
@@ -616,63 +427,69 @@ namespace PSO2PatchManager
                 {
                     if(largePatchRevertButton.Enabled == true)
                     {
+                        // Revert the Large-translation patch
                         revertPatch("LARGE");
                     }
 
                     if(smallPatchRevertButton.Enabled == true)
                     {
+                        // Revert the Small-translation patch
                         revertPatch("SMALL");
                     }
 
                     if(storyPatchRevertButton.Enabled == true)
                     {
+                        // Revert the Story-translation patch
                         revertPatch("STORY");
                     }
                 }
             }
 
-            // Fetch the regular patch
+            // Parse the page where the releases are and grab the newest files.
             WebClient webClient = new WebClient();
             string page = webClient.DownloadString("http://hiigara.arghargh200.net/pso2/");
             
             HtmlAgilityPack.HtmlDocument doc = new HtmlAgilityPack.HtmlDocument();
             doc.LoadHtml(page);
-            foreach (HtmlNode table in doc.DocumentNode.SelectNodes("//table"))
+            foreach(HtmlNode table in doc.DocumentNode.SelectNodes("//table"))
             {
-                foreach (HtmlNode tbody in table.SelectNodes("tbody"))
+                foreach(HtmlNode tbody in table.SelectNodes("tbody"))
                 {
-                    foreach (HtmlNode row in tbody.SelectNodes("tr"))
+                    foreach(HtmlNode row in tbody.SelectNodes("tr"))
                     {
                         int i = 0;
                         bool skip = false;
-                        MyGlobals.filename = "";
-                        MyGlobals.type = "";
-                        MyGlobals.processedDate = "";
-                        foreach (HtmlNode cell in row.SelectNodes("td"))
+                        Globals.filename = "";
+                        Globals.type = "";
+                        Globals.processedDate = "";
+                        foreach(HtmlNode cell in row.SelectNodes("td"))
                         {
-                            if (skip == false)
+                            if(skip == false)
                             {
-                                if (i == 0) // File Name
+                                if(i == 0) 
                                 {
-                                    MyGlobals.filename = cell.InnerText;
-                                    if (!MyGlobals.filename.Contains("rar"))
+                                    // Grab the Filename
+                                    Globals.filename = cell.InnerText;
+                                    if(!Globals.filename.Contains("rar"))
                                     {
+                                        // It's not a rar file, skip
                                         skip = true;
                                     }
                                     else
                                     {
-                                        if (MyGlobals.filename.Contains("large"))
+                                        if(Globals.filename.Contains("large"))
                                         {
-                                            MyGlobals.type = "LARGE";
+                                            Globals.type = "LARGE";
                                         }
                                         else
                                         {
-                                            MyGlobals.type = "SMALL";
+                                            Globals.type = "SMALL";
                                         }
                                     }
                                 }
-                                else if (i == 1) // Date Last Modified
+                                else if(i == 1)
                                 {
+                                    // Grab and process/parse the Date Last Modified
                                     string[] fulldate = cell.InnerText.Split(new string[] { " " }, StringSplitOptions.None);
                                     string[] dates = fulldate[0].Split(new string[] { "-" }, StringSplitOptions.None);
                                     string[] times = fulldate[1].Split(new string[] { ":" }, StringSplitOptions.None);
@@ -695,19 +512,21 @@ namespace PSO2PatchManager
                                     string hour = times[0];
                                     string minute = times[1];
 
-                                    MyGlobals.processedDate = year + "-" + month + "-" + day + " " + hour + ":" + minute;
+                                    Globals.processedDate = year + "-" + month + "-" + day + " " + hour + ":" + minute;
                                 }
-                                else if (i == 2) // Size
+                                else if(i == 2)
                                 {
-                                    
+                                    // The File Size, which we don't use
                                 }
-                                else if (i == 3) // File Type
+                                else if(i == 3)
                                 {
-                                    string query = "INSERT INTO `FileList` (`FileName`, `Type`, `DateModified`) VALUES (\"" + MyGlobals.filename + "\", \"" + MyGlobals.type + "\",  \"" + MyGlobals.processedDate + "\");";
-                                    MyGlobals.executeQuery(query);
+                                    // The Filetype
+                                    string query = "INSERT INTO `FileList` (`FileName`, `Type`, `DateModified`) VALUES (\"" + Globals.filename + "\", \"" + Globals.type + "\",  \"" + Globals.processedDate + "\");";
+                                    Globals.executeQuery(query);
                                 }
                                 else
                                 {
+                                    // What's this?
                                     //Log("DAFUQ");
                                 }
                             }
@@ -720,38 +539,36 @@ namespace PSO2PatchManager
             
             // Grab the latest Large Patch file entry, and then delete all other Large type file entries
             string query2 = "SELECT * FROM `FileList` WHERE `Type`=\"LARGE\" ORDER BY `DateModified` DESC LIMIT 1;";
-            SQLiteCommand cmd = new SQLiteCommand(query2, MyGlobals.dblink);
+            SQLiteCommand cmd = new SQLiteCommand(query2, Globals.dblink);
             SQLiteDataReader reader = cmd.ExecuteReader();
+            
             // For every entry we found
-            while (reader.Read())
+            while(reader.Read())
             {
-                // Get the entry with the latest date
-                //MessageBox.Show(reader["FileName"] + " -> " + reader["DateModified"]);
-
                 // Save the entry with the latest date into the global
-                MyGlobals.latestLargePatchFileName = reader["FileName"].ToString();
+                Globals.latestLargePatchFileName = reader["FileName"].ToString();
 
                 // Delete all other entries that are now irrelevant
                 string query3 = "DELETE FROM `FileList` WHERE `FileName`!=\"" + reader["FileName"] + "\" and `Type`=\"LARGE\";";
-                MyGlobals.executeQuery(query3);
+                Globals.executeQuery(query3);
             }
 
             // Grab the latest Small Patch file entry, and then delete all other Small type file entries
             query2 = "SELECT * FROM `FileList` WHERE `Type`=\"SMALL\" ORDER BY `DateModified` DESC LIMIT 1;";
-            cmd = new SQLiteCommand(query2, MyGlobals.dblink);
+            cmd = new SQLiteCommand(query2, Globals.dblink);
             reader = cmd.ExecuteReader();
             // For every entry we found
-            while (reader.Read())
+            while(reader.Read())
             {
                 // Get the entry with the latest date
                 //MessageBox.Show(reader["FileName"] + " -> " + reader["DateModified"]);
 
                 // Save the entry with the latest date into the global
-                MyGlobals.latestSmallPatchFileName = reader["fileName"].ToString();
+                Globals.latestSmallPatchFileName = reader["fileName"].ToString();
 
                 // Delete all other entries that are now irrelevant
                 string query3 = "DELETE FROM `FileList` WHERE `FileName`!=\"" + reader["FileName"] + "\" and `Type`=\"SMALL\";";
-                MyGlobals.executeQuery(query3);
+                Globals.executeQuery(query3);
             }
 
             compareLocalFiles();
@@ -760,8 +577,8 @@ namespace PSO2PatchManager
         private void compareLocalFiles()
         {
             // Grab all files in the small and large patch folders
-            string[] largePatchFiles = Directory.GetFiles(MyGlobals.workDirectory + "data\\patch\\large\\");
-            string[] smallPatchFiles = Directory.GetFiles(MyGlobals.workDirectory + "data\\patch\\small\\");
+            string[] largePatchFiles = Directory.GetFiles(Globals.workDirectory + "data\\patch\\large\\");
+            string[] smallPatchFiles = Directory.GetFiles(Globals.workDirectory + "data\\patch\\small\\");
 
             // Here we'll check to make sure only 1 file is in both the
             // small and large patch folder
@@ -769,33 +586,31 @@ namespace PSO2PatchManager
             int smallFilesOnFile = smallPatchFiles.Length;
 
             // Checks on the Large patch file
-            if (largeFilesOnFile == 0)
+            if(largeFilesOnFile == 0 || largeFilesOnFile > 1)
             {
-                // We have no large patch file yet, download it
-                MyGlobals.downloadLargePatch = true;
-                MyGlobals.filesToDownload++;
+                // We have no large patch file yet or have more than 1 (somehow)
+                Globals.downloadLargePatch = true;
+                Globals.filesToDownload++;
 
-                // Update the Label
-                largePatchStatus.Text = "Outdated";
+                if(largeFilesOnFile == 0)
+                {
+                    // Update the Label
+                    largePatchStatus.Text = "Outdated";
+                }
+                else
+                {
+                    // Delete the files
+                    Globals.deleteLargeFilesOnFile = true;
+
+                    // Update the Label
+                    largePatchStatus.Text = "Error, redownloading";
+                }
             }
-            else if (largeFilesOnFile > 1)
-            {
-                // If we have more than 1 file, we'll have to delete everything and redownload
-                // the large patch
-                MyGlobals.downloadLargePatch = true;
-                MyGlobals.filesToDownload++;
-                MyGlobals.deleteLargeFilesOnFile = true;
-
-                // Update the Label
-                largePatchStatus.Text = "Error, redownloading";
-
-                
-            }
-            else if (largeFilesOnFile == 1)
+            else if(largeFilesOnFile == 1)
             {
                 // If we have a Large patch file, get the file name, and compare it to the
                 // newest in the database we just pulled
-                if (MyGlobals.latestLargePatchFileName == Path.GetFileName(largePatchFiles[0].ToString()))
+                if(Globals.latestLargePatchFileName == Path.GetFileName(largePatchFiles[0].ToString()))
                 {
                     // Don't download anything, we're up to date
                     // Update the Label
@@ -804,9 +619,9 @@ namespace PSO2PatchManager
                 else
                 {
                     // Delete the local file and grab the newest file
-                    MyGlobals.downloadLargePatch = true;
-                    MyGlobals.filesToDownload++;
-                    MyGlobals.deleteLargeFilesOnFile = true;
+                    Globals.downloadLargePatch = true;
+                    Globals.filesToDownload++;
+                    Globals.deleteLargeFilesOnFile = true;
 
                     // Update the Label
                     largePatchStatus.Text = "Outdated";
@@ -814,31 +629,31 @@ namespace PSO2PatchManager
             }
 
             // Checks on the Small patch file
-            if (smallFilesOnFile == 0)
+            if(smallFilesOnFile == 0 || smallFilesOnFile > 1)
             {
-                // We have no large patch file yet, download it
-                MyGlobals.downloadSmallPatch = true;
-                MyGlobals.filesToDownload++;
+                // We have no small patch file yet or have more than 1 (somehow)
+                Globals.downloadSmallPatch = true;
+                Globals.filesToDownload++;
 
-                // Update the Label
-                smallPatchStatus.Text = "Outdated";
-            }
-            else if (smallFilesOnFile > 1)
-            {
-                // If we have more than 1 file, we'll have to delete everything and redownload
-                // the large patch
-                MyGlobals.downloadSmallPatch = true;
-                MyGlobals.filesToDownload++;
-                MyGlobals.deleteSmallFilesOnFile = true;
+                if(smallFilesOnFile == 0)
+                {
+                    // Update the Label
+                    smallPatchStatus.Text = "Outdated";
+                }
+                else
+                {
+                    // Delete the files
+                    Globals.deleteSmallFilesOnFile = true;
 
-                // Update the Label
-                smallPatchStatus.Text = "Error, redownloading";
+                    // Update the Label
+                    smallPatchStatus.Text = "Error, redownloading";
+                }
             }
-            else if (smallFilesOnFile == 1)
+            else if(smallFilesOnFile == 1)
             {
                 // If we have a Large patch file, get the file name, and compare it to the
                 // newest in the database we just pulled
-                if (MyGlobals.latestSmallPatchFileName == Path.GetFileName(smallPatchFiles[0].ToString()))
+                if(Globals.latestSmallPatchFileName == Path.GetFileName(smallPatchFiles[0].ToString()))
                 {
                     // Don't download anything, we're up to date
                     // Update the Label
@@ -847,9 +662,9 @@ namespace PSO2PatchManager
                 else
                 {
                     // Delete the local file and grab the newest file
-                    MyGlobals.downloadSmallPatch = true;
-                    MyGlobals.filesToDownload++;
-                    MyGlobals.deleteSmallFilesOnFile = true;
+                    Globals.downloadSmallPatch = true;
+                    Globals.filesToDownload++;
+                    Globals.deleteSmallFilesOnFile = true;
 
                     // Update the Label
                     smallPatchStatus.Text = "Outdated";
@@ -859,9 +674,9 @@ namespace PSO2PatchManager
 
         private void checkDownloader()
         {
-            if (MyGlobals.downloadLargePatch || MyGlobals.downloadSmallPatch)
+            if(Globals.downloadLargePatch || Globals.downloadSmallPatch)
             {
-                int transNotifySetting = MyGlobals.getIntFromString(MyGlobals.getSetting("transNotifySettings"));
+                int transNotifySetting = Globals.getIntFromString(Globals.getSetting("transNotifySettings"));
                 bool doUpdate = false;
                 bool patchesInstalled = false;
 
@@ -905,18 +720,18 @@ namespace PSO2PatchManager
                     disableButtons();
 
                     // An update was found, if files were installed, we have to revert the files first
-                    if(MyGlobals.deleteLargeFilesOnFile == true)
+                    if(Globals.deleteLargeFilesOnFile == true)
                     {
-                        MyGlobals.action = "LARGE";
-                        MyGlobals.install = false;
+                        Globals.action = "LARGE";
+                        Globals.install = false;
                         Form installRevertWindow = new installRevertFiles();
                         installRevertWindow.ShowDialog(this);
                     }
 
-                    if(MyGlobals.deleteSmallFilesOnFile == true)
+                    if(Globals.deleteSmallFilesOnFile == true)
                     {
-                        MyGlobals.action = "SMALL";
-                        MyGlobals.install = false;
+                        Globals.action = "SMALL";
+                        Globals.install = false;
                         Form installRevertWindow = new installRevertFiles();
                         installRevertWindow.ShowDialog(this);
                     }
@@ -927,18 +742,20 @@ namespace PSO2PatchManager
 
                     // Unrar the files
                     // Handle the large patch
-                    if (MyGlobals.downloadLargePatch)
+                    if (Globals.downloadLargePatch)
                     {
-                        MyGlobals.rarType = "LARGE";
-                        unrar(MyGlobals.workDirectory + "data\\patch\\large\\" + MyGlobals.latestLargePatchFileName, MyGlobals.workDirectory + "data\\patch\\large\\files\\");
+                        Globals.rarType = "LARGE";
+                        unrar(Globals.workDirectory + "data\\patch\\large\\" + Globals.latestLargePatchFileName, Globals.workDirectory + "data\\patch\\large\\files\\");
                     }
 
-                    if (MyGlobals.downloadSmallPatch)
+                    // Handle the small patch
+                    if (Globals.downloadSmallPatch)
                     {
-                        MyGlobals.rarType = "SMALL";
-                        unrar(MyGlobals.workDirectory + "data\\patch\\small\\" + MyGlobals.latestSmallPatchFileName, MyGlobals.workDirectory + "data\\patch\\small\\files\\");
+                        Globals.rarType = "SMALL";
+                        unrar(Globals.workDirectory + "data\\patch\\small\\" + Globals.latestSmallPatchFileName, Globals.workDirectory + "data\\patch\\small\\files\\");
                     }
 
+                    // Do some verify-checking
                     checkFolders();
                 }
             }
@@ -946,28 +763,28 @@ namespace PSO2PatchManager
 
         private void unrar(string file, string location)
         {
-            MyGlobals.rarExtractToLocation = location;
-            MyGlobals.rarFile = file;
+            Globals.rarExtractToLocation = location;
+            Globals.rarFile = file;
             unrarWindow unrarWindow = new unrarWindow();
             unrarWindow.ShowDialog(this);
 
-            // Remove any readme's that may have been extracted
+            // Remove any readme's that may have been in the archive
             removeReadmeIfExists();
         }
         
         private void removeReadmeIfExists()
         {
             // Small Patch
-            if(File.Exists(MyGlobals.workDirectory + "data\\patch\\small\\files\\readme.txt")){ File.Delete(MyGlobals.workDirectory + "data\\patch\\small\\files\\readme.txt"); }
-            if(File.Exists(MyGlobals.workDirectory + "data\\patch\\small\\files\\original\\readme.txt")){ File.Delete(MyGlobals.workDirectory + "data\\patch\\small\\files\\original\\readme.txt"); }
+            if(File.Exists(Globals.workDirectory + "data\\patch\\small\\files\\readme.txt")){ File.Delete(Globals.workDirectory + "data\\patch\\small\\files\\readme.txt"); }
+            if(File.Exists(Globals.workDirectory + "data\\patch\\small\\files\\original\\readme.txt")){ File.Delete(Globals.workDirectory + "data\\patch\\small\\files\\original\\readme.txt"); }
 
             // Story Patch
-            if(File.Exists(MyGlobals.workDirectory + "data\\patch\\large\\files\\readme.txt")){ File.Delete(MyGlobals.workDirectory + "data\\patch\\large\\files\\readme.txt"); }
-            if(File.Exists(MyGlobals.workDirectory + "data\\patch\\large\\files\\original\\readme.txt")){ File.Delete(MyGlobals.workDirectory + "data\\patch\\large\\files\\original\\readme.txt"); }
+            if(File.Exists(Globals.workDirectory + "data\\patch\\large\\files\\readme.txt")){ File.Delete(Globals.workDirectory + "data\\patch\\large\\files\\readme.txt"); }
+            if(File.Exists(Globals.workDirectory + "data\\patch\\large\\files\\original\\readme.txt")){ File.Delete(Globals.workDirectory + "data\\patch\\large\\files\\original\\readme.txt"); }
 
             // Small Patch
-            if(File.Exists(MyGlobals.workDirectory + "data\\patch\\story\\files\\readme.txt")){ File.Delete(MyGlobals.workDirectory + "data\\patch\\story\\files\\readme.txt"); }
-            if(File.Exists(MyGlobals.workDirectory + "data\\patch\\story\\files\\original\\readme.txt")){ File.Delete(MyGlobals.workDirectory + "data\\patch\\story\\files\\original\\readme.txt"); }
+            if(File.Exists(Globals.workDirectory + "data\\patch\\story\\files\\readme.txt")){ File.Delete(Globals.workDirectory + "data\\patch\\story\\files\\readme.txt"); }
+            if(File.Exists(Globals.workDirectory + "data\\patch\\story\\files\\original\\readme.txt")){ File.Delete(Globals.workDirectory + "data\\patch\\story\\files\\original\\readme.txt"); }
         }
 
         private void installButton_Click(object sender, EventArgs e)
@@ -1010,20 +827,25 @@ namespace PSO2PatchManager
         {
             Form installStoryPatch = new installStoryPatch();
             installStoryPatch.ShowDialog(this);
+
+            // Install the story patch, if the variable was set
             string rarPath = "";
-            if(MyGlobals.installStoryPatch)
+            if(Globals.installStoryPatch)
             {
-                MyGlobals.installStoryPatch = false;
-                DirectoryInfo folderInformation = new DirectoryInfo(MyGlobals.workDirectory + "data\\patch\\story\\");
+                Globals.installStoryPatch = false;
+                DirectoryInfo folderInformation = new DirectoryInfo(Globals.workDirectory + "data\\patch\\story\\");
                 foreach (FileInfo file in folderInformation.GetFiles())
                 {
                     rarPath = Path.GetFileName(file.FullName);
                 }
                 
-                MyGlobals.rarType = "STORY";
-                //MessageBox.Show("Extracting: " + MyGlobals.workDirectory + "data\\patch\\story\\" + rarPath + "\n\nTo: " + MyGlobals.workDirectory + "data\\patch\\story\\files\\");
-                unrar(MyGlobals.workDirectory + "data\\patch\\story\\" + rarPath, MyGlobals.workDirectory + "data\\patch\\story\\files\\");
+                // Set the shortname of what we're unrarring
+                Globals.rarType = "STORY";
+                
+                // Unrar the file to the proper location
+                unrar(Globals.workDirectory + "data\\patch\\story\\" + rarPath, Globals.workDirectory + "data\\patch\\story\\files\\");
 
+                // Do some verify-checking
                 checkFolders();
             }
         }
@@ -1033,7 +855,7 @@ namespace PSO2PatchManager
             bool proceedInstall = true;
 
             // If the client is outdated, and we're trying to install a patch
-            if(MyGlobals.clientOutdated)
+            if(Globals.clientOutdated)
             {
                 // If we chose to get a notification, and have translated files installed, ask
                 string dialogue = "Your client seems to be outdated. Please perform the PSO2 Update first by starting the PSO2 Launcher with the button below. After PSO2 is updated, please relaunch this application and you'll be able to install the Translation Files.";
@@ -1051,8 +873,8 @@ namespace PSO2PatchManager
                 else
                 {
                     disableButtons();
-                    MyGlobals.action = name;
-                    MyGlobals.install = true;
+                    Globals.action = name;
+                    Globals.install = true;
                     Form installRevertWindow = new installRevertFiles();
                     installRevertWindow.ShowDialog(this);
                     checkFolders();
@@ -1075,8 +897,8 @@ namespace PSO2PatchManager
             else
             {
                 disableButtons();
-                MyGlobals.action = name;
-                MyGlobals.install = false;
+                Globals.action = name;
+                Globals.install = false;
                 Form installRevertWindow = new installRevertFiles();
                 installRevertWindow.ShowDialog(this);
                 checkFolders();
@@ -1091,165 +913,15 @@ namespace PSO2PatchManager
 
         private void button1_Click(object sender, EventArgs e)
         {
-            Process.Start(MyGlobals.pso2Directory + "PSO2Launcher.exe");
+            Process.Start(Globals.pso2Directory + "PSO2Launcher.exe");
             this.Close();
         }
 
         private void resizedForm(object sender, EventArgs e)
         {
             // Store the form's location
-            MyGlobals.formX = this.Location.X;
-            MyGlobals.formY = this.Location.Y;
+            Globals.formX = this.Location.X;
+            Globals.formY = this.Location.Y;
         }
-    }
-}
-
-public static class MyGlobals
-{
-    // The SQLite connection
-    public static SQLiteConnection dblink = null;
-
-    public static string oldWorkDirectory = Path.Combine(Environment.ExpandEnvironmentVariables("%userprofile%"), "Documents") + "\\PSO2 Translation Patch Manager\\";
-    public static string workDirectory = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\PSO2 Translation Patch Manager\\";
-    public static string pso2Directory = "C:\\Program Files (x86)\\SEGA\\PHANTASYSTARONLINE2\\pso2_bin\\";
-
-    public static int usingVersion = 0;
-
-    public static string filename = "";
-    public static string type = "";
-    public static string processedDate = "";
-
-    public static string latestLargePatchFileName = "";
-    public static string latestSmallPatchFileName = "";
-    public static string storyTransPatchFileName = "";
-    public static bool deleteLargeFilesOnFile = false;
-    public static bool deleteSmallFilesOnFile = false;
-
-    public static string action = ""; // LARGE, SMALL, STORY
-    public static bool install = false;
-
-    public static bool installSmallPatch = false;
-    public static bool installLargePatch = false;
-    public static bool installStoryPatch = false;
-
-    public static bool downloadLargePatch = false;
-    public static bool downloadSmallPatch = false;
-    public static int filesToDownload = 0;
-
-    public static string rarFile = "";
-    public static string rarExtractToLocation = "";
-    public static string rarType = ""; // LARGE, SMALL, STORY
-
-    public static int formX = 0;
-    public static int formY = 0;
-
-    public static bool clientOutdated = false;
-
-    public static bool skipVerification = false; // whether to confirm, when skip update is pressed
-
-    public static bool executeQuery(string query)
-    {
-        SQLiteCommand sqlcmd;
-        sqlcmd = MyGlobals.dblink.CreateCommand();
-        sqlcmd.CommandText = query;
-        //MessageBox.Show("About to execute query: \r\n" + query);
-        sqlcmd.ExecuteNonQuery();
-        return true;
-    }
-
-    public static bool isNumber(string text)
-    {
-        Regex regex = new Regex("^[0-9]+$");
-        return regex.IsMatch(text);
-    }
-
-    public static string getSetting(string name)
-    {
-        // Grab the latest Large Patch file entry, and then delete all other Large type file entries
-        string query2 = "SELECT `Value` FROM `Settings` WHERE `Name`=\""+name+"\";";
-        SQLiteCommand cmd = new SQLiteCommand(query2, MyGlobals.dblink);
-        SQLiteDataReader reader = cmd.ExecuteReader();
-        // For every entry we found
-        while (reader.Read())
-        {
-            // Return the value we got
-            return reader["Value"].ToString();
-        }
-
-        // Was not found, return NULL
-        return "NULL";
-    }
-
-    public static void setSetting(string name, string value)
-    {
-        // Grab the latest Large Patch file entry, and then delete all other Large type file entries
-        string query = "UPDATE `Settings` SET `Value`=\""+value+"\" WHERE `Name`=\""+name+"\";";
-        executeQuery(query);
-    }
-
-    public static void addSetting(string name, string value)
-    {
-        // Grab the latest Large Patch file entry, and then delete all other Large type file entries
-        string query = "INSERT INTO `Settings` (`Name`, `Value`) VALUES (\"" + name + "\", \"" + value + "\");";
-        executeQuery(query);
-    }
-
-    public static bool settingExists(string name)
-    {
-        // Grab the latest Large Patch file entry, and then delete all other Large type file entries
-        string query2 = "SELECT `Value` FROM `Settings` WHERE `Name`=\"" + name + "\";";
-        SQLiteCommand cmd = new SQLiteCommand(query2, MyGlobals.dblink);
-        SQLiteDataReader reader = cmd.ExecuteReader();
-        // For every entry we found
-        while(reader.Read())
-        {
-            // Setting exists
-            return true;
-        }
-
-        // Setting didn't exist
-        return false;
-    }
-
-    public static int getIntFromString(string text)
-    {
-        int i;
-        if (Int32.TryParse(text, out i))
-        {
-           return i;
-        }
-
-        return -1;
-    }
-
-    public static void pingSiteWithData(string url)
-    {
-        HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
-        request.Method = "POST";
-        request.ContentType = "application/x-www-form-urlencoded";
-        //request.Credentials = CredentialCache.DefaultNetworkCredentials; // ??
-
-        HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-    }
-
-    public static string GetMd5Hash(string input)
-    {
-        MD5 md5Hash = MD5.Create();
-        // Convert the input string to a byte array and compute the hash.
-        byte[] data = md5Hash.ComputeHash(Encoding.UTF8.GetBytes(input));
-
-        // Create a new Stringbuilder to collect the bytes
-        // and create a string.
-        StringBuilder sBuilder = new StringBuilder();
-
-        // Loop through each byte of the hashed data 
-        // and format each one as a hexadecimal string.
-        for (int i = 0; i < data.Length; i++)
-        {
-            sBuilder.Append(data[i].ToString("x2"));
-        }
-
-        // Return the hexadecimal string.
-        return sBuilder.ToString();
     }
 }

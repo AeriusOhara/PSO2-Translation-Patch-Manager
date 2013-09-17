@@ -21,7 +21,7 @@ namespace PSO2PatchManager
         string pso2dir = "";
         int i;
 
-        bool install = MyGlobals.install;
+        bool install = Globals.install;
 
         public installRevertFiles()
         {
@@ -31,60 +31,23 @@ namespace PSO2PatchManager
         private void installRevertFiles_Load(object sender, EventArgs e)
         {
             // Set Form location
-            this.Location = new Point((MyGlobals.formX + 10), (MyGlobals.formY + 30));
+            this.Location = new Point((Globals.formX + 10), (Globals.formY + 30));
 
             string currentDir = Environment.CurrentDirectory + "\\";
-            if (MyGlobals.action == "SMALL")
+            if(install)
             {
-                if (install)
-                {
-                    actionLabel.Text = "Installing Small Patch";
-                    transFiles = Directory.GetFiles(MyGlobals.workDirectory + "data\\patch\\small\\files");
-                }
-                else
-                {
-                    actionLabel.Text = "Reverting Small Patch";
-                    transFiles = Directory.GetFiles(MyGlobals.workDirectory + "data\\patch\\small\\files\\original");
-                }
-                transFilesNum = transFiles.Length;
-                transdir = MyGlobals.workDirectory + "data\\patch\\small\\files\\";
-                transorigdir = MyGlobals.workDirectory + "data\\patch\\small\\files\\original\\";
-                pso2dir = MyGlobals.pso2Directory + "data\\win32\\";
+                actionLabel.Text = "Installing " + Globals.action.ToLower() + " Patch";
+                transFiles = Directory.GetFiles(Globals.workDirectory + "data\\patch\\" + Globals.action.ToLower()  + "\\files");
             }
-            else if (MyGlobals.action == "LARGE")
+            else
             {
-                if (install)
-                {
-                    actionLabel.Text = "Installing Large Patch";
-                    transFiles = Directory.GetFiles(MyGlobals.workDirectory + "data\\patch\\large\\files");
-                }
-                else
-                {
-                    actionLabel.Text = "Reverting Large Patch";
-                    transFiles = Directory.GetFiles(MyGlobals.workDirectory + "data\\patch\\large\\files\\original");
-                }
-                transFilesNum = transFiles.Length;
-                transdir = MyGlobals.workDirectory + "data\\patch\\large\\files\\";
-                transorigdir = MyGlobals.workDirectory + "data\\patch\\large\\files\\original\\";
-                pso2dir = MyGlobals.pso2Directory + "data\\win32\\";
+                actionLabel.Text = "Reverting " + Globals.action.ToLower()  + " Patch";
+                transFiles = Directory.GetFiles(Globals.workDirectory + "data\\patch\\" + Globals.action.ToLower()  + "\\files\\original");
             }
-            if (MyGlobals.action == "STORY")
-            {
-                if (install)
-                {
-                    actionLabel.Text = "Installing Story Patch";
-                    transFiles = Directory.GetFiles(MyGlobals.workDirectory + "data\\patch\\story\\files");
-                }
-                else
-                {
-                    actionLabel.Text = "Reverting Story Patch";
-                    transFiles = Directory.GetFiles(MyGlobals.workDirectory + "data\\patch\\story\\files\\original");
-                }
-                transFilesNum = transFiles.Length;
-                transdir = MyGlobals.workDirectory + "data\\patch\\story\\files\\";
-                transorigdir = MyGlobals.workDirectory + "data\\patch\\story\\files\\original\\";
-                pso2dir = MyGlobals.pso2Directory + "data\\win32\\";
-            }
+            transFilesNum = transFiles.Length;
+            transdir = Globals.workDirectory + "data\\patch\\" + Globals.action.ToLower()  + "\\files\\";
+            transorigdir = Globals.workDirectory + "data\\patch\\" + Globals.action.ToLower()  + "\\files\\original\\";
+            pso2dir = Globals.pso2Directory + "data\\win32\\";
 
             BackgroundWorker bw = new BackgroundWorker();
             bw.WorkerSupportsCancellation = true;
@@ -107,10 +70,10 @@ namespace PSO2PatchManager
             int curPercent = 0;
             
             // Increment & update stats as well as progress bar
-            if (install == true)
+            if(install == true)
             {
                 i = 0;
-                foreach (string file in Directory.GetFiles(transdir))
+                foreach(string file in Directory.GetFiles(transdir))
                 {
                     // Save the filename
                     string filename = Path.GetFileName(file);
@@ -126,7 +89,7 @@ namespace PSO2PatchManager
                     curPercent = ((i * 100) / transFilesNum);
 
                     // Update the UI
-                    if ((worker.CancellationPending == true))
+                    if((worker.CancellationPending == true))
                     {
                         e.Cancel = true;
                         break;
@@ -142,7 +105,7 @@ namespace PSO2PatchManager
             else
             {
                 i = 0;
-                foreach (string file in Directory.GetFiles(transorigdir))
+                foreach(string file in Directory.GetFiles(transorigdir))
                 {
                     // Save the filename
                     string filename = Path.GetFileName(file);
@@ -158,7 +121,7 @@ namespace PSO2PatchManager
                     curPercent = ((i * 100) / transFilesNum);
 
                     // Update the UI
-                    if ((worker.CancellationPending == true))
+                    if((worker.CancellationPending == true))
                     {
                         e.Cancel = true;
                         break;
@@ -181,12 +144,12 @@ namespace PSO2PatchManager
 
         private void bw_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            if ((e.Cancelled == true))
+            if((e.Cancelled == true))
             {
                 // Cancelled
             }
 
-            else if (!(e.Error == null))
+            else if(!(e.Error == null))
             {
                 // An error occured
             }

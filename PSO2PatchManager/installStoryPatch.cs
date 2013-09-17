@@ -79,7 +79,7 @@ namespace PSO2PatchManager
         private void installStoryPatch_Load(object sender, EventArgs e)
         {
             // Set Form location
-            this.Location = new Point((MyGlobals.formX + 10), (MyGlobals.formY + 30));
+            this.Location = new Point((Globals.formX + 10), (Globals.formY + 30));
 
             // Disable the Install button by default
             closeAndInstallStoryPatch.Enabled = false;
@@ -90,11 +90,11 @@ namespace PSO2PatchManager
             BackgroundWorker worker = sender as BackgroundWorker;
             
             // Delete all files in the translation directory, if found
-            foreach (string file in Directory.GetFiles(MyGlobals.workDirectory + "data\\patch\\story\\files\\"))
+            foreach (string file in Directory.GetFiles(Globals.workDirectory + "data\\patch\\story\\files\\"))
             {
                 // Save the filename
                 string filename = Path.GetFileName(file);
-                string fileLocation = MyGlobals.workDirectory + "data\\patch\\story\\files\\" + filename;
+                string fileLocation = Globals.workDirectory + "data\\patch\\story\\files\\" + filename;
 
                 try
                 {
@@ -112,11 +112,11 @@ namespace PSO2PatchManager
             }
 
             // Delete the translation patch archive, if found
-            foreach (string file in Directory.GetFiles(MyGlobals.workDirectory + "data\\patch\\story\\"))
+            foreach (string file in Directory.GetFiles(Globals.workDirectory + "data\\patch\\story\\"))
             {
                 // Save the filename
                 string filename = Path.GetFileName(file);
-                string fileLocation = MyGlobals.workDirectory + "data\\patch\\story\\" + filename;
+                string fileLocation = Globals.workDirectory + "data\\patch\\story\\" + filename;
 
                 try
                 {
@@ -156,12 +156,12 @@ namespace PSO2PatchManager
                 // Move the file if no errors were detected
                 if(encounteredError == false)
                 {
-                    File.Move(storyTransFilePath, MyGlobals.workDirectory + "data\\patch\\story\\" + storyTransFileName);
+                    File.Move(storyTransFilePath, Globals.workDirectory + "data\\patch\\story\\" + storyTransFileName);
                 }
 
                 // Set up a flag that'll trigger the story patch being
                 // installed automatically
-                MyGlobals.installStoryPatch = true;
+                Globals.installStoryPatch = true;
                 this.Close();
             }
         }

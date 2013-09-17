@@ -24,23 +24,23 @@ namespace PSO2PatchManager
         private void unrarWindow_Load(object sender, EventArgs e)
         {
             // Set Form location
-            this.Location = new Point((MyGlobals.formX + 10), (MyGlobals.formY + 30));
+            this.Location = new Point((Globals.formX + 10), (Globals.formY + 30));
 
-            if (MyGlobals.rarType == "LARGE")
+            if(Globals.rarType == "LARGE")
             {
                 actionLabel.Text = "Extracting Large Patch";
             }
-            else if (MyGlobals.rarType == "SMALL")
+            else if(Globals.rarType == "SMALL")
             {
                 actionLabel.Text = "Extracting Small Patch";
             }
-            else if (MyGlobals.rarType == "STORY")
+            else if(Globals.rarType == "STORY")
             {
                 actionLabel.Text = "Extracting Story Patch";
             }
             else
             {
-                MessageBox.Show("Derp?\n\nArchive Type came back as: " + MyGlobals.rarType + " (was especting .zip or .rar)");
+                MessageBox.Show("Wrong archive format received!\n\nArchive Type came back as: " + Globals.rarType + " (was especting .zip or .rar)");
             }
 
             BackgroundWorker bw = new BackgroundWorker();
@@ -51,33 +51,26 @@ namespace PSO2PatchManager
             bw.ProgressChanged += new ProgressChangedEventHandler(bw_ProgressChanged);
             bw.RunWorkerCompleted += new RunWorkerCompletedEventHandler(bw_RunWorkerCompleted);
 
-            if (bw.IsBusy != true)
+            if(bw.IsBusy != true)
             {
-                //MessageBox.Show("Background worker is not busy!");
+                // If the background worker is not busy, lets get this thing started
                 bw.RunWorkerAsync();
-            }
-            else
-            {
-                //MessageBox.Show("Guess the background worker must be busy? ._.");
             }
         }
 
         private void bw_DoWork(object sender, DoWorkEventArgs e)
         {
-            //MessageBox.Show("We're in!");
             BackgroundWorker worker = sender as BackgroundWorker;
-            using (SevenZipArchive archive = new SevenZipArchive(MyGlobals.rarFile))
+            using (SevenZipArchive archive = new SevenZipArchive(Globals.rarFile))
             {
                 int i = 0;
                 int max = archive.Count();
-                //MessageBox.Show("Max: " + max);
                 int curPercent = 0;
                 foreach (ArchiveEntry entry in archive)
                 {
-                    //entry.Extract(MyGlobals.rarExtractToLocation);
                     try
                     {
-                        entry.Extract(MyGlobals.workDirectory + "data\\patch\\temp\\");
+                        entry.Extract(Globals.workDirectory + "data\\patch\\temp\\");
                     }
                     catch(SevenZipException ex)
                     {
@@ -91,7 +84,7 @@ namespace PSO2PatchManager
 
 
                     // Update the UI
-                    if ((worker.CancellationPending == true))
+                    if((worker.CancellationPending == true))
                     {
                         e.Cancel = true;
                         break;
@@ -106,21 +99,21 @@ namespace PSO2PatchManager
 
                 int lastPercent = curPercent;
 
-                //DirectoryInfo dir = new DirectoryInfo(MyGlobals.workDirectory + "data\\patch\\temp\\");
-                String[] allfiles = System.IO.Directory.GetFiles(MyGlobals.workDirectory + "data\\patch\\temp\\", "*.*", System.IO.SearchOption.AllDirectories);
+                //DirectoryInfo dir = new DirectoryInfo(Globals.workDirectory + "data\\patch\\temp\\");
+                String[] allfiles = System.IO.Directory.GetFiles(Globals.workDirectory + "data\\patch\\temp\\", "*.*", System.IO.SearchOption.AllDirectories);
                 max = allfiles.Length;
                 i = 0;
                 foreach(string file in allfiles)
                 {
-                    //MessageBox.Show("Moving: " + file + "\nTo: " + MyGlobals.rarExtractToLocation + Path.GetFileName(file));
-                    Directory.Move(file, MyGlobals.rarExtractToLocation + Path.GetFileName(file));
+                    //MessageBox.Show("Moving: " + file + "\nTo: " + Globals.rarExtractToLocation + Path.GetFileName(file));
+                    Directory.Move(file, Globals.rarExtractToLocation + Path.GetFileName(file));
 
                     i++;
                     curPercent = (((i *100)/max)/ 2);
                     curPercent += lastPercent;
 
                     // Update the UI
-                    if ((worker.CancellationPending == true))
+                    if((worker.CancellationPending == true))
                     {
                         e.Cancel = true;
                         break;
@@ -145,12 +138,12 @@ namespace PSO2PatchManager
 
         private void bw_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            if ((e.Cancelled == true))
+            if((e.Cancelled == true))
             {
                 // Cancelled
             }
 
-            else if (!(e.Error == null))
+            else if(!(e.Error == null))
             {
                 // An error occured
             }
@@ -160,8 +153,8 @@ namespace PSO2PatchManager
                 // Done unrarring
 
                 // Delete old rar
-                System.IO.DirectoryInfo folderInformation = new DirectoryInfo(MyGlobals.workDirectory + "data\\patch\\temp");
-                foreach (FileInfo file in folderInformation.GetFiles())
+                System.IO.DirectoryInfo folderInformation = new DirectoryInfo(Globals.workDirectory + "data\\patch\\temp");
+                foreach(FileInfo file in folderInformation.GetFiles())
                 {
                     // If any files were found, delete them all
                     file.Delete();

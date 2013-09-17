@@ -31,19 +31,19 @@ namespace PSO2PatchManager
         private void switchDevStable_Load(object sender, EventArgs e)
         {
             // Set Form location
-            this.Location = new Point((MyGlobals.formX + 10), (MyGlobals.formY + 30));
+            this.Location = new Point((Globals.formX + 10), (Globals.formY + 30));
 
             restartThisApp.Enabled = false;
 
             // Replace the text
             string channelShortName = "";
             string explanationTextStr = explanationText.Text;
-            if (MyGlobals.usingVersion == 0)
+            if (Globals.usingVersion == 0)
             {
                 explanationTextStr = explanationTextStr.Replace("%CURVER%", "Stable");
                 explanationTextStr = explanationTextStr.Replace("%NEXTVER%", "Developer");
                 explanationText.Text = explanationTextStr;
-                File.WriteAllText(@MyGlobals.workDirectory + "using.dat", "1");
+                File.WriteAllText(@Globals.workDirectory + "using.dat", "1");
                 channelShortName = "dev";
             }
             else
@@ -51,7 +51,7 @@ namespace PSO2PatchManager
                 explanationTextStr = explanationTextStr.Replace("%CURVER%", "Developer");
                 explanationTextStr = explanationTextStr.Replace("%NEXTVER%", "Stable");
                 explanationText.Text = explanationTextStr;
-                File.WriteAllText(@MyGlobals.workDirectory + "using.dat", "0");
+                File.WriteAllText(@Globals.workDirectory + "using.dat", "0");
                 channelShortName = "stable";
             }
 
@@ -72,9 +72,9 @@ namespace PSO2PatchManager
 
         public void downloadFile()
         {
-            if (downloadQueue.Count() > 0)
+            if(downloadQueue.Count() > 0)
             {
-                using (webClient = new WebClient())
+                using(webClient = new WebClient())
                 {
                     webClient.DownloadFileCompleted += new AsyncCompletedEventHandler(Completed);
                     webClient.DownloadProgressChanged += new DownloadProgressChangedEventHandler(ProgressChanged);
@@ -85,13 +85,13 @@ namespace PSO2PatchManager
                         Uri URL;
 
                         // Make sure the url starts with "http://"
-                        if (!downloadQueue[0].url.StartsWith("http://", StringComparison.OrdinalIgnoreCase))
+                        if(!downloadQueue[0].url.StartsWith("http://", StringComparison.OrdinalIgnoreCase))
                         {
                             downloadQueue[0].url = "http://" + downloadQueue[0].url;
                         }
 
                         //MessageBox.Show("Value: " + urlAddress);
-                        if (!Uri.TryCreate(downloadQueue[0].url, UriKind.Absolute, out URL))
+                        if(!Uri.TryCreate(downloadQueue[0].url, UriKind.Absolute, out URL))
                         {
                             MessageBox.Show("Bad URL! -> " + downloadQueue[0].url);
                         }
@@ -104,7 +104,7 @@ namespace PSO2PatchManager
 
                         downloadQueue.RemoveAt(0);
                     }
-                    catch (Exception ex)
+                    catch(Exception ex)
                     {
                         MessageBox.Show(ex.Message);
                     }
@@ -124,10 +124,10 @@ namespace PSO2PatchManager
             try
             {
                 // Update the progressbar percentage only when the value is not the same (to avoid updating the control constantly)
-                if (progressBar.Value != e.ProgressPercentage)
+                if(progressBar.Value != e.ProgressPercentage)
                     progressBar.Value = e.ProgressPercentage;
             }
-            catch (Exception ex)
+            catch(Exception ex)
             {
                 MessageBox.Show(ex.Message);
             }
@@ -136,7 +136,7 @@ namespace PSO2PatchManager
         private void Completed(object sender, AsyncCompletedEventArgs e)
         {
             stopWatch.Reset();
-            if (e.Cancelled == true)
+            if(e.Cancelled == true)
             {
                 // No cancelling allowed
             }

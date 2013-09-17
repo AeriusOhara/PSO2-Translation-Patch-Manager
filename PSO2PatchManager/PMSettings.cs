@@ -29,10 +29,10 @@ namespace PSO2PatchManager
         private void PMSettings_Load(object sender, EventArgs e)
         {
             // Set Form location
-            this.Location = new Point((MyGlobals.formX + 10), (MyGlobals.formY + 30));
+            this.Location = new Point((Globals.formX + 10), (Globals.formY + 30));
 
             // Check if this is our first run or not, if yes, update the label
-            string tmpString = MyGlobals.getSetting("firstRun");
+            string tmpString = Globals.getSetting("firstRun");
             if(tmpString == "")
             {
                 firstRun = true;
@@ -52,17 +52,17 @@ namespace PSO2PatchManager
             }
 
             // Check if any settings exist, if they do, apply them
-            tmpString = MyGlobals.getSetting("pso2Directory");
+            tmpString = Globals.getSetting("pso2Directory");
             if(tmpString != "")
             {
-                PSO2Directory = MyGlobals.getSetting("pso2Directory");
+                PSO2Directory = Globals.getSetting("pso2Directory");
                 pso2DirectoryTextBox.Text = PSO2Directory;
             }
 
-            tmpString = MyGlobals.getSetting("transNotifySettings");
+            tmpString = Globals.getSetting("transNotifySettings");
             if(tmpString != "" && tmpString != "0")
             {
-                selectedTransNotification = MyGlobals.getIntFromString(MyGlobals.getSetting("transNotifySettings"));
+                selectedTransNotification = Globals.getIntFromString(Globals.getSetting("transNotifySettings"));
                 if(selectedTransNotification == 1){transNotify1.Checked = true;}
                 else if(selectedTransNotification == 2){transNotify2.Checked = true;}
                 else if(selectedTransNotification == 3){transNotify3.Checked = true;}
@@ -73,10 +73,10 @@ namespace PSO2PatchManager
                 transNotify1.Checked = true;
             }
             
-            tmpString = MyGlobals.getSetting("pso2NotifySettings");
+            tmpString = Globals.getSetting("pso2NotifySettings");
             if(tmpString != "" && tmpString != "0")
             {
-                selectedPSO2Notification = MyGlobals.getIntFromString(MyGlobals.getSetting("pso2NotifySettings"));
+                selectedPSO2Notification = Globals.getIntFromString(Globals.getSetting("pso2NotifySettings"));
                 if(selectedPSO2Notification == 1){pso2Notify1.Checked = true;}
                 else if(selectedPSO2Notification == 2){pso2Notify2.Checked = true;}
                 else if(selectedPSO2Notification == 3){pso2Notify3.Checked = true;}
@@ -88,21 +88,21 @@ namespace PSO2PatchManager
             }
 
             // Update the usingVersion combobox
-            if(MyGlobals.usingVersion == 0){
+            if(Globals.usingVersion == 0){
                 usingVersion.SelectedIndex = 0;
             }else{
                 usingVersion.SelectedIndex = 1;
             }
 
             // Grab the skip confirmation checkbox value
-            skipVersionTextFile = File.ReadAllLines(MyGlobals.workDirectory + "skip.dat");
+            skipVersionTextFile = File.ReadAllLines(Globals.workDirectory + "skip.dat");
             if (skipVersionTextFile[2] == "0")
             {
-                MyGlobals.skipVerification = false;
+                Globals.skipVerification = false;
             }
             else
             {
-                MyGlobals.skipVerification = true;
+                Globals.skipVerification = true;
                 doNotAskCheckBox.Checked = true;
             }
         }
@@ -223,10 +223,10 @@ namespace PSO2PatchManager
         {
             if(checkForm())
             {
-                if(firstRun == true){MyGlobals.setSetting("firstRun", "1");}
-                MyGlobals.setSetting("transNotifySettings", selectedTransNotification.ToString());
-                MyGlobals.setSetting("pso2NotifySettings", selectedPSO2Notification.ToString());
-                MyGlobals.setSetting("pso2Directory", PSO2Directory);
+                if(firstRun == true){Globals.setSetting("firstRun", "1");}
+                Globals.setSetting("transNotifySettings", selectedTransNotification.ToString());
+                Globals.setSetting("pso2NotifySettings", selectedPSO2Notification.ToString());
+                Globals.setSetting("pso2Directory", PSO2Directory);
 
                 this.Close();
             }
@@ -271,7 +271,7 @@ namespace PSO2PatchManager
         {
             int selectedIndex = usingVersion.SelectedIndex;
 
-            if(selectedIndex != MyGlobals.usingVersion){
+            if(selectedIndex != Globals.usingVersion){
                 // Build-specific messages
                 string[] specificMessages = {"", ""};
                 specificMessages[0] = "The Stable build offers like the name suggests, stable builds where you are unlikely to come across any crashes.";
@@ -283,7 +283,7 @@ namespace PSO2PatchManager
                     Form switchDevStable = new switchDevStable();
                     switchDevStable.ShowDialog(this);
                 }else{
-                    usingVersion.SelectedIndex = MyGlobals.usingVersion;
+                    usingVersion.SelectedIndex = Globals.usingVersion;
                 }
             }
         }
@@ -297,12 +297,12 @@ namespace PSO2PatchManager
             string skipVerificationValue = "";
             if(doNotAskCheckBox.Checked == true)
             {
-                MyGlobals.skipVerification = true;
+                Globals.skipVerification = true;
                 skipVerificationValue += "1";
             }
             else
             {
-                MyGlobals.skipVerification = false;
+                Globals.skipVerification = false;
                 skipVerificationValue += "0";
             }
 
@@ -310,7 +310,7 @@ namespace PSO2PatchManager
             string versionFileContents = skipVersionTextFile[0] + "\n";
             versionFileContents += skipVersionTextFile[1] + "\n";
             versionFileContents += skipVerificationValue;
-            File.WriteAllText(@MyGlobals.workDirectory+"skip.dat", versionFileContents);
+            File.WriteAllText(@Globals.workDirectory+"skip.dat", versionFileContents);
 
             // Enable the checkbox
             doNotAskCheckBox.Enabled = true;

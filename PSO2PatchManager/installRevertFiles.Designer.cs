@@ -83,6 +83,7 @@
             this.Controls.Add(this.progressBar);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
             this.Name = "installRevertFiles";
+            this.ShowInTaskbar = false;
             this.Text = "Processing...";
             this.Load += new System.EventHandler(this.installRevertFiles_Load);
             this.ResumeLayout(false);
